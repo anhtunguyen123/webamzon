@@ -1,12 +1,12 @@
 <?php
 // Thiết lập thông tin kết nối đến database
-$servername = "database-server-lab7.cocgl5wbv5ga.ap-southeast-1.rds.amazonaws.com";
-$username = "admin";
-$password = "12345678";
+$servername = "database-1.cgjsbzxmt03q.us-east-1.rds.amazonaws.com";
+$username_db = "admin";
+$password_db = "thaiquangtinh";
 $dbname = "myDB";
 
 // Tạo kết nối đến database
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username_db, $password_db, $dbname);
 
 // Kiểm tra kết nối
 if ($conn->connect_error) {
@@ -15,34 +15,30 @@ if ($conn->connect_error) {
 
 // Kiểm tra nếu form đã submit
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Lấy giá trị từ form và kiểm tra
-    $username = trim($_POST["username"]);
-    $password = trim($_POST["password"]);
+    // Lấy giá trị từ form, chống SQL injection
+    $username = $_POST["username"];
+    $password = $_POST["password"];
 
-    if (!empty($username) && !empty($password)) {
-        // Dùng Prepared Statement để tránh SQL Injection
-        $stmt = $conn->prepare("SELECT * FROM User WHERE username = ? AND password = ?");
-        $stmt->bind_param("ss", $username, $password);
+    // Sử dụng prepared statement để tránh SQL Injection
+    $stmt = $conn->prepare("SELECT * FROM User WHERE username = ? AND password = ?");
+    $stmt->bind_param("ss", $username, $password); // ss = string, string
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        // Kiểm tra kết quả
-        if ($result->num_rows > 0) {
-            echo "Bạn đã đăng nhập thành công.";
-            // Có thể redirect hoặc tạo session ở đây
-        } else {
-            echo "Tên đăng nhập hoặc mật khẩu không đúng.";
-        }
-
-        $stmt->close();
+    // Kiểm tra số lượng bản ghi trả về
+    if ($result->num_rows > 0) {
+        echo "Bạn đã đăng nhập thành công";
+        // Chuyển hướng hoặc thực hiện hành động tiếp theo
     } else {
-        echo "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.";
+        echo "Bạn đã đăng nhập không thành công";
     }
+
+    $stmt->close();
 }
 
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
